@@ -63,11 +63,12 @@
 
         input, select {
             width: 100%;
-            padding: 10px;
+            padding: 12px 10px; /* Un poco más de padding para pantallas táctiles */
             border: 1px solid var(--border);
             border-radius: 6px;
             box-sizing: border-box;
             font-family: inherit;
+            font-size: 1rem;
         }
 
         .grid-2 {
@@ -76,12 +77,20 @@
             gap: 15px;
         }
 
+        /* Contenedor extra para proteger las proporciones en móvil */
+        .factura-wrapper {
+            width: 100%;
+            overflow-x: auto;
+            padding-bottom: 10px;
+        }
+
         /* Diseño de la Factura */
         .factura-box {
             border: 2px solid var(--primary);
             padding: 30px;
             background: #fff;
             position: relative;
+            min-width: 650px; /* Fuerza el formato apaisado para asegurar que el PDF salga bien */
         }
 
         .factura-header {
@@ -148,10 +157,37 @@
             cursor: pointer;
             margin-top: 20px;
             transition: background 0.3s;
+            -webkit-tap-highlight-color: transparent;
         }
 
         .btn-descargar:hover {
             background-color: #1D4ED8;
+        }
+
+        /* =========================================
+           REGLAS RESPONSIVE (MÓVILES Y TABLETS)
+           ========================================= */
+        @media screen and (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+            
+            /* Pasa a una sola columna */
+            .app-container {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+
+            .panel {
+                padding: 15px;
+            }
+
+            /* Apila los campos del formulario uno encima de otro, 
+               pero NO afecta a la estructura interna de la factura */
+            .panel .grid-2:not(.factura-section) {
+                grid-template-columns: 1fr;
+                gap: 0;
+            }
         }
     </style>
 </head>
@@ -231,56 +267,59 @@
 
         <!-- PANEL DE FACTURA (Vista Previa y PDF) -->
         <div class="panel">
-            <div class="factura-box" id="areaFactura">
-                <div class="factura-header">
-                    MINI FACTURA Y TICKET DE ENTREGA
-                </div>
-
-                <div class="factura-section grid-2">
-                    <div>
-                        <strong>Pedido:</strong> <span id="f_idPedido">PED-001</span><br>
-                        <strong>Fecha:</strong> <span id="f_fecha">-</span><br>
-                        <strong>Cliente:</strong> <span id="f_cliente">-</span><br>
-                        <strong>Negocio:</strong> <span id="f_negocio">-</span><br>
-                        <strong>Ubicación:</strong> <span id="f_ubicacion">-</span>
+            <h2>📄 Vista Previa</h2>
+            <div class="factura-wrapper">
+                <div class="factura-box" id="areaFactura">
+                    <div class="factura-header">
+                        MINI FACTURA Y TICKET DE ENTREGA
                     </div>
-                    <div>
-                        <strong>ID Placa:</strong> <span id="f_idQr">-</span><br>
-                        <strong>Activación:</strong> <span id="f_activacion">-</span><br>
-                        <strong>URL Destino:</strong> <span id="f_url" style="word-break: break-all;">-</span>
+
+                    <div class="factura-section grid-2">
+                        <div>
+                            <strong>Pedido:</strong> <span id="f_idPedido">PED-001</span><br>
+                            <strong>Fecha:</strong> <span id="f_fecha">-</span><br>
+                            <strong>Cliente:</strong> <span id="f_cliente">-</span><br>
+                            <strong>Negocio:</strong> <span id="f_negocio">-</span><br>
+                            <strong>Ubicación:</strong> <span id="f_ubicacion">-</span>
+                        </div>
+                        <div>
+                            <strong>ID Placa:</strong> <span id="f_idQr">-</span><br>
+                            <strong>Activación:</strong> <span id="f_activacion">-</span><br>
+                            <strong>URL Destino:</strong> <span id="f_url" style="word-break: break-all;">-</span>
+                        </div>
                     </div>
-                </div>
 
-                <table class="factura-table">
-                    <thead>
-                        <tr>
-                            <th>Producto</th>
-                            <th>Uds.</th>
-                            <th>Tarifa Base</th>
-                            <th>Dto.</th>
-                            <th>Total Neto</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td id="f_producto">-</td>
-                            <td id="f_cantidad">0</td>
-                            <td id="f_tarifaBase">0,00 €</td>
-                            <td id="f_descuento">0%</td>
-                            <td id="f_totalLinea">0,00 €</td>
-                        </tr>
-                    </tbody>
-                </table>
+                    <table class="factura-table">
+                        <thead>
+                            <tr>
+                                <th>Producto</th>
+                                <th>Uds.</th>
+                                <th>Tarifa Base</th>
+                                <th>Dto.</th>
+                                <th>Total Neto</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td id="f_producto">-</td>
+                                <td id="f_cantidad">0</td>
+                                <td id="f_tarifaBase">0,00 €</td>
+                                <td id="f_descuento">0%</td>
+                                <td id="f_totalLinea">0,00 €</td>
+                            </tr>
+                        </tbody>
+                    </table>
 
-                <div class="total-box">
-                    <p>Subtotal Base: <span style="color:#0f172a; font-size:1.1rem" id="f_subtotal">0,00 €</span></p>
-                    <p>Descuento Aplicado: <span style="color:#ef4444; font-size:1.1rem" id="f_importeDto">0,00 €</span></p>
-                    <p>TOTAL A PAGAR: <span id="f_totalFinal">0,00 €</span></p>
-                </div>
+                    <div class="total-box">
+                        <p>Subtotal Base: <span style="color:#0f172a; font-size:1.1rem" id="f_subtotal">0,00 €</span></p>
+                        <p>Descuento Aplicado: <span style="color:#ef4444; font-size:1.1rem" id="f_importeDto">0,00 €</span></p>
+                        <p>TOTAL A PAGAR: <span id="f_totalFinal">0,00 €</span></p>
+                    </div>
 
-                <div class="firma-proveedor">
-                    <strong>FIRMA DEL PROVEEDOR:</strong><br>
-                    Marcos Hidalgo Rodríguez - Dispositivos NFC y QR Premium
+                    <div class="firma-proveedor">
+                        <strong>FIRMA DEL PROVEEDOR:</strong><br>
+                        Marcos Hidalgo Rodríguez - Dispositivos NFC y QR Premium
+                    </div>
                 </div>
             </div>
         </div>
@@ -357,7 +396,7 @@
             // Construimos el nombre del archivo de forma automática
             const idPedido = document.getElementById('idPedido').value || 'PEDIDO';
             let cliente = document.getElementById('cliente').value || 'Cliente';
-            cliente = cliente.replace(/\s+/g, '_'); // Cambia los espacios por barras bajas para el nombre del archivo
+            cliente = cliente.replace(/\s+/g, '_'); 
             
             const nombreArchivo = `Factura_${idPedido}_${cliente}.pdf`;
 
@@ -366,7 +405,7 @@
                 margin:       10,
                 filename:     nombreArchivo,
                 image:        { type: 'jpeg', quality: 0.98 },
-                html2canvas:  { scale: 2 }, // Da mejor resolución al PDF
+                html2canvas:  { scale: 2, scrollX: 0, scrollY: 0 }, 
                 jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
             };
 
