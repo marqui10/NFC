@@ -1,25 +1,382 @@
-<html>
+<!DOCTYPE html>
+<html lang="es">
 <head>
-    <title>SYSTEM_CRITICAL_ERROR</title>
-</head>
-<body style="background-color:black; color:red; font-family:monospace; text-align:center; padding-top:20%;">
-    <h1>EXPLOIT_EXECUTED_CRITICAL_FAILURE</h1>
-    <p>ACCESING_CORE_MEMORY... 89%</p>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Pedidos - NFC/QR Premium</title>
     
-    <script>
-        // Bucle de vibración infinita (patrón de alarma)
-        setInterval(() => {
-            if (navigator.vibrate) {
-                navigator.vibrate([500, 200, 500, 200, 1000]);
-            }
-        }, 1000);
+    <!-- Librería para exportar a PDF directamente -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
-        // Bucle de saturación de historial para forzar el Soft Reboot
-        setTimeout(() => {
-            while(true) {
-                window.history.pushState(null, "", window.location.href);
+    <style>
+        :root {
+            --primary: #1E293B;
+            --accent: #2563EB;
+            --bg: #F8FAFC;
+            --text: #0F172A;
+            --border: #CBD5E1;
+        }
+        
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 20px;
+        }
+
+        .app-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+
+        .panel {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        h2 {
+            margin-top: 0;
+            color: var(--primary);
+            border-bottom: 2px solid var(--accent);
+            padding-bottom: 10px;
+            font-size: 1.2rem;
+            text-transform: uppercase;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            font-weight: bold;
+            font-size: 0.9rem;
+            margin-bottom: 5px;
+            color: #475569;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            box-sizing: border-box;
+            font-family: inherit;
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        /* Diseño de la Factura */
+        .factura-box {
+            border: 2px solid var(--primary);
+            padding: 30px;
+            background: #fff;
+            position: relative;
+        }
+
+        .factura-header {
+            text-align: center;
+            margin-bottom: 25px;
+            background: var(--primary);
+            color: white;
+            padding: 15px;
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+
+        .factura-section {
+            margin-bottom: 20px;
+        }
+
+        .factura-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+
+        .factura-table th, .factura-table td {
+            border: 1px solid var(--border);
+            padding: 10px;
+            text-align: left;
+        }
+
+        .factura-table th {
+            background-color: #F1F5F9;
+        }
+
+        .total-box {
+            text-align: right;
+            font-size: 1.2rem;
+            margin-top: 20px;
+        }
+
+        .total-box span {
+            font-weight: bold;
+            color: #059669;
+            font-size: 1.5rem;
+        }
+
+        .firma-proveedor {
+            margin-top: 40px;
+            border-top: 1px solid var(--border);
+            padding-top: 10px;
+            text-align: center;
+            font-style: italic;
+            color: #64748B;
+        }
+
+        .btn-descargar {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            background-color: var(--accent);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: background 0.3s;
+        }
+
+        .btn-descargar:hover {
+            background-color: #1D4ED8;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="app-container">
+        <!-- PANEL DE CONTROL (Formulario) -->
+        <div class="panel">
+            <h2>📝 Nuevo Pedido NFC/QR</h2>
+            
+            <div class="grid-2">
+                <div class="form-group">
+                    <label>ID Pedido</label>
+                    <input type="text" id="idPedido" value="PED-001" oninput="actualizarFactura()">
+                </div>
+                <div class="form-group">
+                    <label>Fecha</label>
+                    <input type="date" id="fecha" oninput="actualizarFactura()">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Cliente / Comprador</label>
+                <input type="text" id="cliente" placeholder="Ej. Carlos Reina" oninput="actualizarFactura()">
+            </div>
+
+            <div class="grid-2">
+                <div class="form-group">
+                    <label>Nombre del Negocio</label>
+                    <input type="text" id="negocio" placeholder="Ej. Bar La Reina" oninput="actualizarFactura()">
+                </div>
+                <div class="form-group">
+                    <label>Ubicación</label>
+                    <input type="text" id="ubicacion" placeholder="Ciudad o Zona" oninput="actualizarFactura()">
+                </div>
+            </div>
+
+            <div class="grid-2">
+                <div class="form-group">
+                    <label>Tipo de Producto</label>
+                    <select id="producto" onchange="calcularPrecios()">
+                        <option value="">Selecciona...</option>
+                        <option value="Google Review - Blanca">Google Review - Blanca</option>
+                        <option value="Google Review - Negra">Google Review - Negra</option>
+                        <option value="Instagram">Instagram</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Cantidad</label>
+                    <input type="number" id="cantidad" min="1" value="1" oninput="calcularPrecios()">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Descuento Promocional (%)</label>
+                <input type="number" id="descuento" min="0" max="100" value="0" oninput="calcularPrecios()">
+            </div>
+
+            <div class="grid-2">
+                <div class="form-group">
+                    <label>ID Placa / QR</label>
+                    <input type="text" id="idQr" placeholder="Ej. QR-G01" oninput="actualizarFactura()">
+                </div>
+                <div class="form-group">
+                    <label>Nº Activación</label>
+                    <input type="text" id="activacion" placeholder="Ej. ACT-123" oninput="actualizarFactura()">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Enlace / URL Destino</label>
+                <input type="text" id="url" placeholder="https://g.page/r/..." oninput="actualizarFactura()">
+            </div>
+            
+            <button class="btn-descargar" onclick="descargarPDF()">📥 Generar y Descargar PDF</button>
+        </div>
+
+        <!-- PANEL DE FACTURA (Vista Previa y PDF) -->
+        <div class="panel">
+            <div class="factura-box" id="areaFactura">
+                <div class="factura-header">
+                    MINI FACTURA Y TICKET DE ENTREGA
+                </div>
+
+                <div class="factura-section grid-2">
+                    <div>
+                        <strong>Pedido:</strong> <span id="f_idPedido">PED-001</span><br>
+                        <strong>Fecha:</strong> <span id="f_fecha">-</span><br>
+                        <strong>Cliente:</strong> <span id="f_cliente">-</span><br>
+                        <strong>Negocio:</strong> <span id="f_negocio">-</span><br>
+                        <strong>Ubicación:</strong> <span id="f_ubicacion">-</span>
+                    </div>
+                    <div>
+                        <strong>ID Placa:</strong> <span id="f_idQr">-</span><br>
+                        <strong>Activación:</strong> <span id="f_activacion">-</span><br>
+                        <strong>URL Destino:</strong> <span id="f_url" style="word-break: break-all;">-</span>
+                    </div>
+                </div>
+
+                <table class="factura-table">
+                    <thead>
+                        <tr>
+                            <th>Producto</th>
+                            <th>Uds.</th>
+                            <th>Tarifa Base</th>
+                            <th>Dto.</th>
+                            <th>Total Neto</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td id="f_producto">-</td>
+                            <td id="f_cantidad">0</td>
+                            <td id="f_tarifaBase">0,00 €</td>
+                            <td id="f_descuento">0%</td>
+                            <td id="f_totalLinea">0,00 €</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div class="total-box">
+                    <p>Subtotal Base: <span style="color:#0f172a; font-size:1.1rem" id="f_subtotal">0,00 €</span></p>
+                    <p>Descuento Aplicado: <span style="color:#ef4444; font-size:1.1rem" id="f_importeDto">0,00 €</span></p>
+                    <p>TOTAL A PAGAR: <span id="f_totalFinal">0,00 €</span></p>
+                </div>
+
+                <div class="firma-proveedor">
+                    <strong>FIRMA DEL PROVEEDOR:</strong><br>
+                    Marcos Hidalgo Rodríguez - Dispositivos NFC y QR Premium
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SCRIPT DE LÓGICA Y CÁLCULO -->
+    <script>
+        // Inicializar fecha de hoy
+        document.getElementById('fecha').valueAsDate = new Date();
+        
+        function actualizarFactura() {
+            // Mapear campos de texto directos
+            const campos = ['idPedido', 'cliente', 'negocio', 'ubicacion', 'idQr', 'activacion', 'url'];
+            campos.forEach(campo => {
+                const valor = document.getElementById(campo).value || '-';
+                document.getElementById('f_' + campo).innerText = valor;
+            });
+
+            // Formatear Fecha
+            const fechaInput = document.getElementById('fecha').value;
+            if(fechaInput) {
+                const dateParts = fechaInput.split('-');
+                document.getElementById('f_fecha').innerText = `${dateParts[2]}/${dateParts[1]}/${dateParts[0]}`;
             }
-        }, 3000); // Empieza a saturar tras 3 segundos de vibración
+        }
+
+        function calcularPrecios() {
+            const producto = document.getElementById('producto').value;
+            const cantidad = parseInt(document.getElementById('cantidad').value) || 0;
+            const descuentoPct = parseFloat(document.getElementById('descuento').value) || 0;
+            
+            let tarifaBase = 0;
+
+            // Motor de reglas de negocio
+            if (producto && cantidad > 0) {
+                if (producto.includes("Instagram")) {
+                    tarifaBase = cantidad * 20;
+                } else if (producto.includes("Google")) {
+                    switch(cantidad) {
+                        case 1: tarifaBase = 25; break;
+                        case 2: tarifaBase = 45; break;
+                        case 3: tarifaBase = 65; break;
+                        case 4: tarifaBase = 80; break;
+                        case 5: tarifaBase = 100; break;
+                        default: tarifaBase = cantidad * 20; // 6 o más
+                    }
+                }
+            }
+
+            const importeDescuento = tarifaBase * (descuentoPct / 100);
+            const totalFinal = tarifaBase - importeDescuento;
+
+            // Actualizar vista de factura
+            document.getElementById('f_producto').innerText = producto || '-';
+            document.getElementById('f_cantidad').innerText = cantidad;
+            document.getElementById('f_descuento').innerText = descuentoPct + '%';
+            
+            const formatearDivisa = (num) => num.toFixed(2).replace('.', ',') + ' €';
+
+            document.getElementById('f_tarifaBase').innerText = formatearDivisa(tarifaBase);
+            document.getElementById('f_totalLinea').innerText = formatearDivisa(totalFinal);
+            
+            document.getElementById('f_subtotal').innerText = formatearDivisa(tarifaBase);
+            document.getElementById('f_importeDto').innerText = "-" + formatearDivisa(importeDescuento);
+            document.getElementById('f_totalFinal').innerText = formatearDivisa(totalFinal);
+
+            actualizarFactura();
+        }
+
+        function descargarPDF() {
+            // Seleccionamos solo el panel de la factura
+            const elemento = document.getElementById('areaFactura');
+            
+            // Construimos el nombre del archivo de forma automática
+            const idPedido = document.getElementById('idPedido').value || 'PEDIDO';
+            let cliente = document.getElementById('cliente').value || 'Cliente';
+            cliente = cliente.replace(/\s+/g, '_'); // Cambia los espacios por barras bajas para el nombre del archivo
+            
+            const nombreArchivo = `Factura_${idPedido}_${cliente}.pdf`;
+
+            // Opciones de configuración para el PDF
+            const opciones = {
+                margin:       10,
+                filename:     nombreArchivo,
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { scale: 2 }, // Da mejor resolución al PDF
+                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+
+            // Ejecuta la librería para generar y descargar el PDF
+            html2pdf().set(opciones).from(elemento).save();
+        }
+
+        // Ejecutar cálculos al cargar la página
+        actualizarFactura();
+        calcularPrecios();
     </script>
 </body>
 </html>
