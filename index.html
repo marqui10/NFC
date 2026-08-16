@@ -3,17 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema de Facturación - NFC/QR Premium</title>
+    <title>Generador de Recibos - NFC/QR</title>
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
     <style>
         :root {
-            --primary: #0F172A;
-            --accent: #2563EB;
-            --bg: #F1F5F9;
-            --text: #1E293B;
-            --border: #CBD5E1;
+            --primary: #1F2937;
+            --accent: #3B82F6;
+            --bg: #F3F4F6;
+            --text: #111827;
+            --border: #D1D5DB;
         }
         
         body {
@@ -25,7 +25,7 @@
         }
 
         .app-container {
-            max-width: 1300px;
+            max-width: 1200px;
             margin: 0 auto;
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -36,7 +36,7 @@
             background: white;
             padding: 25px;
             border-radius: 12px;
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
             max-height: 95vh;
             overflow-y: auto;
         }
@@ -50,7 +50,6 @@
             font-size: 1rem;
             text-transform: uppercase;
             font-weight: 700;
-            letter-spacing: 0.5px;
         }
 
         .section-title:first-child { margin-top: 0; }
@@ -62,7 +61,7 @@
             font-weight: 600;
             font-size: 0.85rem;
             margin-bottom: 4px;
-            color: #475569;
+            color: #4B5563;
         }
 
         input, select {
@@ -73,7 +72,7 @@
             box-sizing: border-box;
             font-family: inherit;
             font-size: 0.95rem;
-            background-color: #F8FAFC;
+            background-color: #F9FAFB;
         }
 
         input:focus, select:focus {
@@ -85,7 +84,7 @@
         .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
         .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
 
-        /* --- ESTILOS DEL DOCUMENTO (FACTURA) --- */
+        /* --- ESTILOS DEL DOCUMENTO --- */
         .factura-wrapper { width: 100%; }
         
         .factura-box {
@@ -93,7 +92,7 @@
             padding: 40px;
             background: #fff;
             position: relative;
-            min-width: 650px;
+            min-width: 600px;
             box-shadow: 0 0 10px rgba(0,0,0,0.05);
         }
 
@@ -103,20 +102,20 @@
             top: 25%;
             left: 50%;
             transform: translate(-50%, -50%) rotate(-15deg);
-            font-size: 4rem;
+            font-size: 3.5rem;
             font-weight: 900;
-            border: 6px solid;
+            border: 5px solid;
             padding: 10px 30px;
-            border-radius: 15px;
-            opacity: 0.15;
+            border-radius: 12px;
+            opacity: 0.12;
             pointer-events: none;
             z-index: 10;
             text-transform: uppercase;
-            letter-spacing: 5px;
+            letter-spacing: 4px;
         }
 
-        .sello-pagado { color: #059669; border-color: #059669; }
-        .sello-pendiente { color: #DC2626; border-color: #DC2626; }
+        .sello-pagado { color: #10B981; border-color: #10B981; }
+        .sello-pendiente { color: #EF4444; border-color: #EF4444; }
 
         .f-header {
             display: flex;
@@ -126,23 +125,24 @@
             padding-bottom: 20px;
         }
 
-        .f-brand h1 { margin: 0; color: var(--primary); font-size: 1.8rem; }
-        .f-brand p { margin: 2px 0; font-size: 0.85rem; color: #64748B; }
+        .f-brand h1 { margin: 0; color: var(--primary); font-size: 1.6rem; }
+        .f-brand p { margin: 2px 0; font-size: 0.9rem; color: #6B7280; }
 
         .f-doc-info { text-align: right; }
-        .f-doc-info h2 { margin: 0; color: var(--accent); font-size: 1.5rem; text-transform: uppercase; }
+        .f-doc-info h2 { margin: 0; color: var(--accent); font-size: 1.3rem; text-transform: uppercase; }
         .f-doc-info p { margin: 2px 0; font-size: 0.9rem; }
 
         .f-datos-clientes {
             display: grid;
             grid-template-columns: 1fr 1fr;
             margin-bottom: 30px;
-            background: #F8FAFC;
+            background: #F9FAFB;
             padding: 15px;
             border-radius: 8px;
+            border: 1px solid var(--border);
         }
 
-        .f-datos-clientes h3 { margin-top: 0; font-size: 1rem; margin-bottom: 10px; color: var(--primary); }
+        .f-datos-clientes h3 { margin-top: 0; font-size: 0.95rem; margin-bottom: 10px; color: var(--primary); }
         .f-datos-clientes p { margin: 4px 0; font-size: 0.9rem; }
 
         .factura-table {
@@ -171,16 +171,16 @@
         .f-metodo-pago {
             width: 40%;
             font-size: 0.85rem;
-            color: #475569;
-            background: #F1F5F9;
+            color: #4B5563;
+            background: #F3F4F6;
             padding: 15px;
             border-radius: 8px;
         }
 
         .f-totales { width: 50%; }
         .f-totales table { width: 100%; border-collapse: collapse; }
-        .f-totales td { padding: 5px 0; font-size: 0.95rem; }
-        .f-totales tr.total-final td { font-size: 1.3rem; font-weight: bold; color: var(--primary); border-top: 2px solid var(--border); padding-top: 10px; }
+        .f-totales td { padding: 6px 0; font-size: 1rem; }
+        .f-totales tr.total-final td { font-size: 1.3rem; font-weight: bold; color: var(--primary); border-top: 2px solid var(--border); padding-top: 12px; }
 
         .f-footer {
             margin-top: 40px;
@@ -191,13 +191,14 @@
 
         .f-legal {
             width: 55%;
-            font-size: 0.65rem;
-            color: #94A3B8;
+            font-size: 0.7rem;
+            color: #6B7280;
             text-align: justify;
+            line-height: 1.4;
         }
 
         .firma-cliente { width: 40%; text-align: center; }
-        .firma-cliente p { margin: 0 0 5px 0; font-weight: bold; font-size: 0.85rem; }
+        .firma-cliente p { margin: 0 0 5px 0; font-weight: bold; font-size: 0.85rem; color: var(--primary); }
         
         .canvas-container { position: relative; }
         canvas {
@@ -206,11 +207,12 @@
             height: 100px;
             cursor: crosshair;
             touch-action: none; 
+            background-color: #FAFAFA;
         }
 
         .btn-limpiar {
-            background-color: #F1F5F9;
-            color: #475569;
+            background-color: #F3F4F6;
+            color: #4B5563;
             border: 1px solid var(--border);
             padding: 4px 10px;
             border-radius: 4px;
@@ -230,14 +232,10 @@
             font-size: 1.1rem;
             font-weight: bold;
             cursor: pointer;
-            margin-top: 20px;
+            margin-top: 25px;
             transition: background 0.3s;
         }
-        .btn-descargar:hover { background-color: #1D4ED8; }
-
-        /* Toggle Switch para IVA */
-        .toggle-container { display: flex; align-items: center; margin-top: 10px; }
-        .toggle-container label { margin-bottom: 0; margin-left: 10px; font-weight: normal; cursor: pointer; }
+        .btn-descargar:hover { background-color: #2563EB; }
 
         @media screen and (max-width: 1024px) {
             .app-container { grid-template-columns: 1fr; }
@@ -250,21 +248,20 @@
     <div class="app-container">
         <!-- PANEL DE CONTROL -->
         <div class="panel">
-            <h2 style="margin-top:0; color:var(--primary); font-size: 1.4rem;">⚙️ Configuración del Documento</h2>
+            <h2 style="margin-top:0; color:var(--primary); font-size: 1.4rem;">📱 Generar Recibo de Entrega</h2>
             
             <div class="section-title">Datos del Documento</div>
             <div class="grid-3">
                 <div class="form-group">
                     <label>Tipo Documento</label>
                     <select id="tipoDoc" onchange="actualizarTextos()">
-                        <option value="Factura">Factura</option>
-                        <option value="Factura Simplificada">Factura Simplificada</option>
-                        <option value="Albarán de Entrega">Albarán de Entrega</option>
+                        <option value="Justificante de Entrega">Justificante de Entrega</option>
+                        <option value="Recibo de Compra">Recibo de Compra</option>
                     </select>
                 </div>
                 <div class="form-group">
-                    <label>Nº Documento</label>
-                    <input type="text" id="idPedido" value="F-26001" oninput="actualizarTextos()">
+                    <label>Nº Recibo</label>
+                    <input type="text" id="idPedido" value="REC-001" oninput="actualizarTextos()">
                 </div>
                 <div class="form-group">
                     <label>Fecha</label>
@@ -285,36 +282,29 @@
                     <select id="metodoPago" onchange="actualizarTextos()">
                         <option value="Bizum">Bizum</option>
                         <option value="Efectivo">Efectivo</option>
-                        <option value="Transferencia Bancaria">Transferencia Bancaria</option>
-                        <option value="Tarjeta">Tarjeta / TPV</option>
+                        <option value="Transferencia">Transferencia</option>
                         <option value="Pendiente">Pendiente</option>
                     </select>
                 </div>
             </div>
 
-            <div class="section-title">Datos del Negocio (Cliente)</div>
-            <div class="grid-2">
-                <div class="form-group">
-                    <label>Nombre Fiscal / Empresa</label>
-                    <input type="text" id="negocio" placeholder="Ej. Restaurante La Plaza SL" oninput="actualizarTextos()">
-                </div>
-                <div class="form-group">
-                    <label>CIF / NIF</label>
-                    <input type="text" id="cif" placeholder="Ej. B12345678" oninput="actualizarTextos()">
-                </div>
+            <div class="section-title">Datos del Local / Negocio</div>
+            <div class="form-group">
+                <label>Nombre del Negocio (Bar, Tienda, etc.)</label>
+                <input type="text" id="negocio" placeholder="Ej. Bar La Plaza" oninput="actualizarTextos()">
             </div>
             <div class="grid-2">
                 <div class="form-group">
-                    <label>Persona de Contacto</label>
+                    <label>Persona que lo recibe</label>
                     <input type="text" id="cliente" placeholder="Nombre de quien firma" oninput="actualizarTextos()">
                 </div>
                 <div class="form-group">
-                    <label>Ubicación / Dirección</label>
-                    <input type="text" id="ubicacion" placeholder="Dirección del local" oninput="actualizarTextos()">
+                    <label>Ciudad / Dirección</label>
+                    <input type="text" id="ubicacion" placeholder="Ej. Valladolid" oninput="actualizarTextos()">
                 </div>
             </div>
 
-            <div class="section-title">Detalles del Dispositivo NFC/QR</div>
+            <div class="section-title">Detalles de la Placa</div>
             <div class="grid-2">
                 <div class="form-group">
                     <label>Tipo de Placa</label>
@@ -332,33 +322,25 @@
             </div>
             <div class="grid-2">
                 <div class="form-group">
-                    <label>ID / Serie Placa</label>
-                    <input type="text" id="idQr" placeholder="Ej. QR-G01" oninput="actualizarTextos()">
+                    <label>Identificador de Placa</label>
+                    <input type="text" id="idQr" placeholder="Ej. QR-01" oninput="actualizarTextos()">
                 </div>
                 <div class="form-group">
-                    <label>Enlace / URL</label>
+                    <label>Enlace Configurado</label>
                     <input type="text" id="url" placeholder="g.page/r/..." oninput="actualizarTextos()">
                 </div>
             </div>
 
-            <div class="section-title">Precios e Impuestos</div>
-            <div class="grid-2">
-                <div class="form-group">
-                    <label>Descuento Comercial (%)</label>
-                    <input type="number" id="descuento" min="0" max="100" value="0" oninput="calcularPrecios()">
-                </div>
-                <div class="form-group">
-                    <div class="toggle-container" style="margin-top: 25px;">
-                        <input type="checkbox" id="aplicarIva" checked onchange="calcularPrecios()">
-                        <label for="aplicarIva">Aplicar 21% IVA (B2B)</label>
-                    </div>
-                </div>
+            <div class="section-title">Precio Final</div>
+            <div class="form-group">
+                <label>Descuento Especial (€)</label>
+                <input type="number" id="descuento" min="0" value="0" step="0.5" oninput="calcularPrecios()">
             </div>
             
-            <button class="btn-descargar" onclick="descargarPDF()">📥 Generar Documento PDF</button>
+            <button class="btn-descargar" onclick="descargarPDF()">📥 Guardar PDF del Recibo</button>
         </div>
 
-        <!-- PANEL DE FACTURA -->
+        <!-- PANEL DE VISTA PREVIA -->
         <div class="panel">
             <div class="factura-wrapper">
                 <div class="factura-box" id="areaFactura">
@@ -367,28 +349,26 @@
 
                     <div class="f-header">
                         <div class="f-brand">
-                            <h1>Soluciones NFC/QR</h1>
-                            <p><strong>Tu Nombre / Marca</strong></p>
-                            <p>info@tusitio.com | +34 600 000 000</p>
-                            <p>Valladolid, España</p>
+                            <h1>Dispositivos NFC/QR</h1>
+                            <p><strong>Configuración y Entrega</strong></p>
+                            <p>Soporte y Garantía</p>
                         </div>
                         <div class="f-doc-info">
-                            <h2 id="f_tipoDoc">FACTURA</h2>
-                            <p><strong>Nº:</strong> <span id="f_idPedido">F-26001</span></p>
+                            <h2 id="f_tipoDoc">JUSTIFICANTE DE ENTREGA</h2>
+                            <p><strong>Nº:</strong> <span id="f_idPedido">REC-001</span></p>
                             <p><strong>Fecha:</strong> <span id="f_fecha">-</span></p>
                         </div>
                     </div>
 
                     <div class="f-datos-clientes">
                         <div>
-                            <h3>Datos del Cliente</h3>
-                            <p><strong>Empresa:</strong> <span id="f_negocio">-</span></p>
-                            <p><strong>CIF/NIF:</strong> <span id="f_cif">-</span></p>
-                            <p><strong>Dirección:</strong> <span id="f_ubicacion">-</span></p>
+                            <h3>Entregado a:</h3>
+                            <p><strong>Negocio:</strong> <span id="f_negocio">-</span></p>
+                            <p><strong>Recibido por:</strong> <span id="f_cliente">-</span></p>
+                            <p><strong>Ubicación:</strong> <span id="f_ubicacion">-</span></p>
                         </div>
                         <div>
-                            <h3>Datos de Entrega / Activación</h3>
-                            <p><strong>Contacto:</strong> <span id="f_cliente">-</span></p>
+                            <h3>Datos de Configuración:</h3>
                             <p><strong>Nº Serie Placa:</strong> <span id="f_idQr">-</span></p>
                             <p><strong>Enlace Destino:</strong> <span id="f_url">-</span></p>
                         </div>
@@ -397,11 +377,10 @@
                     <table class="factura-table">
                         <thead>
                             <tr>
-                                <th>Descripción del Artículo</th>
+                                <th>Artículo Entregado</th>
                                 <th class="text-right">Uds.</th>
                                 <th class="text-right">Precio Ud.</th>
-                                <th class="text-right">Dto.</th>
-                                <th class="text-right">Importe</th>
+                                <th class="text-right">Total</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -409,7 +388,6 @@
                                 <td id="f_producto">-</td>
                                 <td class="text-right" id="f_cantidad">0</td>
                                 <td class="text-right" id="f_precioUd">0,00 €</td>
-                                <td class="text-right" id="f_descuento">0%</td>
                                 <td class="text-right" id="f_importeLinea">0,00 €</td>
                             </tr>
                         </tbody>
@@ -417,7 +395,7 @@
 
                     <div class="f-resumen-financiero">
                         <div class="f-metodo-pago">
-                            <strong>Condiciones de Pago</strong><br><br>
+                            <strong>Detalles del Pago</strong><br><br>
                             Método: <span id="f_metodoPago">Bizum</span><br>
                             Estado: <strong id="f_estadoPagoTexto">Cobrado</strong>
                         </div>
@@ -425,23 +403,15 @@
                         <div class="f-totales">
                             <table>
                                 <tr>
-                                    <td>Subtotal:</td>
+                                    <td>Importe Base:</td>
                                     <td class="text-right" id="f_subtotal">0,00 €</td>
                                 </tr>
                                 <tr>
-                                    <td>Descuento:</td>
+                                    <td>Descuento Aplicado:</td>
                                     <td class="text-right" id="f_importeDto">0,00 €</td>
                                 </tr>
-                                <tr>
-                                    <td><strong>Base Imponible:</strong></td>
-                                    <td class="text-right"><strong id="f_baseImponible">0,00 €</strong></td>
-                                </tr>
-                                <tr id="filaIva">
-                                    <td>IVA (21%):</td>
-                                    <td class="text-right" id="f_cuotaIva">0,00 €</td>
-                                </tr>
                                 <tr class="total-final">
-                                    <td>TOTAL DOCUMENTO:</td>
+                                    <td>TOTAL A PAGAR:</td>
                                     <td class="text-right" id="f_totalFinal">0,00 €</td>
                                 </tr>
                             </table>
@@ -450,15 +420,15 @@
 
                     <div class="f-footer">
                         <div class="f-legal">
-                            <strong>Garantía y Política de Privacidad</strong><br>
-                            El dispositivo NFC/QR cuenta con una garantía de funcionamiento frente a defectos de fábrica de 1 año desde la fecha de entrega. No cubre daños por mal uso, rotura física o alteración de la URL destino por parte de terceros.<br><br>
-                            En cumplimiento de la normativa vigente en Protección de Datos (RGPD), le informamos que sus datos serán tratados de forma confidencial con la única finalidad de gestionar la relación comercial e informarle sobre el estado de sus servicios. Con su firma da su conformidad a la recepción del material y a estas condiciones.
+                            <strong>Información y Garantía</strong><br>
+                            Este documento sirve como justificante de entrega y compraventa de artículos entre particulares. <br><br>
+                            El dispositivo NFC/QR entregado cuenta con una garantía de funcionamiento de 1 año desde la fecha de entrega frente a defectos internos. La garantía no cubre daños por golpes, caídas, mal uso, exposición a líquidos o alteraciones de la URL destino por parte de terceros o de las plataformas enlazadas.
                         </div>
                         <div class="firma-cliente">
-                            <p>Firma y Conformidad del Cliente</p>
+                            <p>Firma de Recepción (Cliente)</p>
                             <div class="canvas-container">
                                 <canvas id="pizarraFirma"></canvas>
-                                <button type="button" class="btn-limpiar" onclick="limpiarFirma()" data-html2canvas-ignore="true">Borrar</button>
+                                <button type="button" class="btn-limpiar" onclick="limpiarFirma()" data-html2canvas-ignore="true">Limpiar</button>
                             </div>
                         </div>
                     </div>
@@ -471,7 +441,7 @@
         document.getElementById('fecha').valueAsDate = new Date();
         
         function actualizarTextos() {
-            const campos = ['idPedido', 'cliente', 'negocio', 'ubicacion', 'idQr', 'url', 'cif'];
+            const campos = ['idPedido', 'cliente', 'negocio', 'ubicacion', 'idQr', 'url'];
             campos.forEach(campo => {
                 const valor = document.getElementById(campo).value || '';
                 document.getElementById('f_' + campo).innerText = valor || '-';
@@ -495,17 +465,17 @@
             } else {
                 sello.innerText = 'PENDIENTE';
                 sello.className = 'sello-estado sello-pendiente';
-                document.getElementById('f_estadoPagoTexto').innerText = 'Pendiente';
+                document.getElementById('f_estadoPagoTexto').innerText = 'Pendiente de abono';
             }
         }
 
         function calcularPrecios() {
             const producto = document.getElementById('producto').value;
             const cantidad = parseInt(document.getElementById('cantidad').value) || 0;
-            const descuentoPct = parseFloat(document.getElementById('descuento').value) || 0;
-            const aplicarIva = document.getElementById('aplicarIva').checked;
+            // Ojo: ahora el descuento es directamente en Euros para hacerlo más fácil entre particulares
+            const descuentoEuros = parseFloat(document.getElementById('descuento').value) || 0;
             
-            let precioUnitario = 0;
+            let precioUnitario = 25; // Precio base por defecto
 
             if (producto && cantidad > 0) {
                 if (producto.includes("Instagram")) {
@@ -516,38 +486,22 @@
                     else if (cantidad === 3) precioUnitario = 21.66; // ~65 total
                     else if (cantidad === 4) precioUnitario = 20; // 80 total
                     else if (cantidad >= 5) precioUnitario = 20; // 100 total
-                } else {
-                    precioUnitario = 25;
                 }
             }
 
             const importeBruto = precioUnitario * cantidad;
-            const importeDescuento = importeBruto * (descuentoPct / 100);
-            const baseImponible = importeBruto - importeDescuento;
-            
-            let cuotaIva = 0;
-            if(aplicarIva) {
-                cuotaIva = baseImponible * 0.21;
-                document.getElementById('filaIva').style.display = 'table-row';
-            } else {
-                document.getElementById('filaIva').style.display = 'none';
-            }
-            
-            const totalFinal = baseImponible + cuotaIva;
+            const totalFinal = importeBruto - descuentoEuros;
 
             const fDiv = (num) => num.toFixed(2).replace('.', ',') + ' €';
 
             document.getElementById('f_producto').innerText = producto;
             document.getElementById('f_cantidad').innerText = cantidad;
-            document.getElementById('f_descuento').innerText = descuentoPct + '%';
             
             document.getElementById('f_precioUd').innerText = fDiv(precioUnitario);
-            document.getElementById('f_importeLinea').innerText = fDiv(baseImponible);
+            document.getElementById('f_importeLinea').innerText = fDiv(importeBruto);
             
             document.getElementById('f_subtotal').innerText = fDiv(importeBruto);
-            document.getElementById('f_importeDto').innerText = "-" + fDiv(importeDescuento);
-            document.getElementById('f_baseImponible').innerText = fDiv(baseImponible);
-            document.getElementById('f_cuotaIva').innerText = fDiv(cuotaIva);
+            document.getElementById('f_importeDto').innerText = "-" + fDiv(descuentoEuros);
             document.getElementById('f_totalFinal').innerText = fDiv(totalFinal);
 
             actualizarTextos();
@@ -555,14 +509,14 @@
 
         function descargarPDF() {
             const elemento = document.getElementById('areaFactura');
-            const idPedido = document.getElementById('idPedido').value || 'DOC';
-            let negocio = document.getElementById('negocio').value || 'Cliente';
+            const idPedido = document.getElementById('idPedido').value || 'RECIBO';
+            let negocio = document.getElementById('negocio').value || 'Local';
             negocio = negocio.replace(/\s+/g, '_'); 
             
             const nombreArchivo = `${idPedido}_${negocio}.pdf`;
 
             const opciones = {
-                margin:       [10, 10, 10, 10], // Margen para asegurar bordes
+                margin:       [10, 10, 10, 10], 
                 filename:     nombreArchivo,
                 image:        { type: 'jpeg', quality: 0.98 },
                 html2canvas:  { scale: 2, scrollX: 0, scrollY: 0 }, 
@@ -581,9 +535,9 @@
             const rect = canvas.getBoundingClientRect();
             canvas.width = rect.width;
             canvas.height = rect.height;
-            ctx.lineWidth = 2;
+            ctx.lineWidth = 2.5;
             ctx.lineCap = 'round';
-            ctx.strokeStyle = '#0F172A';
+            ctx.strokeStyle = '#111827';
         }
 
         function empezarDibujo(e) {
