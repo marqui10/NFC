@@ -3,22 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestión de Pedidos - NFC/QR Premium</title>
+    <title>Sistema de Facturación - NFC/QR Premium</title>
     
-    <!-- Librería para exportar a PDF directamente -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
     <style>
         :root {
-            --primary: #1E293B;
+            --primary: #0F172A;
             --accent: #2563EB;
-            --bg: #F8FAFC;
-            --text: #0F172A;
+            --bg: #F1F5F9;
+            --text: #1E293B;
             --border: #CBD5E1;
         }
         
         body {
-            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
             background-color: var(--bg);
             color: var(--text);
             margin: 0;
@@ -26,86 +25,125 @@
         }
 
         .app-container {
-            max-width: 1200px;
+            max-width: 1300px;
             margin: 0 auto;
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 30px;
+            gap: 25px;
         }
 
         .panel {
             background: white;
             padding: 25px;
-            border-radius: 10px;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            border-radius: 12px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            max-height: 95vh;
+            overflow-y: auto;
         }
 
-        h2 {
-            margin-top: 0;
+        .section-title {
+            margin-top: 25px;
+            margin-bottom: 15px;
             color: var(--primary);
             border-bottom: 2px solid var(--accent);
-            padding-bottom: 10px;
-            font-size: 1.2rem;
+            padding-bottom: 5px;
+            font-size: 1rem;
             text-transform: uppercase;
+            font-weight: 700;
+            letter-spacing: 0.5px;
         }
 
-        .form-group {
-            margin-bottom: 15px;
-        }
+        .section-title:first-child { margin-top: 0; }
 
+        .form-group { margin-bottom: 12px; }
+        
         label {
             display: block;
-            font-weight: bold;
-            font-size: 0.9rem;
-            margin-bottom: 5px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            margin-bottom: 4px;
             color: #475569;
         }
 
         input, select {
             width: 100%;
-            padding: 12px 10px; /* Un poco más de padding para pantallas táctiles */
+            padding: 10px;
             border: 1px solid var(--border);
             border-radius: 6px;
             box-sizing: border-box;
             font-family: inherit;
-            font-size: 1rem;
+            font-size: 0.95rem;
+            background-color: #F8FAFC;
         }
 
-        .grid-2 {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--accent);
+            background-color: #fff;
         }
 
-        /* Contenedor extra para proteger las proporciones en móvil */
-        .factura-wrapper {
-            width: 100%;
-            overflow-x: auto;
-            padding-bottom: 10px;
-        }
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
 
-        /* Diseño de la Factura */
+        /* --- ESTILOS DEL DOCUMENTO (FACTURA) --- */
+        .factura-wrapper { width: 100%; }
+        
         .factura-box {
-            border: 2px solid var(--primary);
-            padding: 30px;
+            border: 1px solid var(--border);
+            padding: 40px;
             background: #fff;
             position: relative;
-            min-width: 650px; /* Fuerza el formato apaisado para asegurar que el PDF salga bien */
+            min-width: 650px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.05);
         }
 
-        .factura-header {
-            text-align: center;
-            margin-bottom: 25px;
-            background: var(--primary);
-            color: white;
+        /* Sello de agua PAGADO / PENDIENTE */
+        .sello-estado {
+            position: absolute;
+            top: 25%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(-15deg);
+            font-size: 4rem;
+            font-weight: 900;
+            border: 6px solid;
+            padding: 10px 30px;
+            border-radius: 15px;
+            opacity: 0.15;
+            pointer-events: none;
+            z-index: 10;
+            text-transform: uppercase;
+            letter-spacing: 5px;
+        }
+
+        .sello-pagado { color: #059669; border-color: #059669; }
+        .sello-pendiente { color: #DC2626; border-color: #DC2626; }
+
+        .f-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 30px;
+            border-bottom: 2px solid var(--primary);
+            padding-bottom: 20px;
+        }
+
+        .f-brand h1 { margin: 0; color: var(--primary); font-size: 1.8rem; }
+        .f-brand p { margin: 2px 0; font-size: 0.85rem; color: #64748B; }
+
+        .f-doc-info { text-align: right; }
+        .f-doc-info h2 { margin: 0; color: var(--accent); font-size: 1.5rem; text-transform: uppercase; }
+        .f-doc-info p { margin: 2px 0; font-size: 0.9rem; }
+
+        .f-datos-clientes {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            margin-bottom: 30px;
+            background: #F8FAFC;
             padding: 15px;
-            font-weight: bold;
-            font-size: 1.2rem;
+            border-radius: 8px;
         }
 
-        .factura-section {
-            margin-bottom: 20px;
-        }
+        .f-datos-clientes h3 { margin-top: 0; font-size: 1rem; margin-bottom: 10px; color: var(--primary); }
+        .f-datos-clientes p { margin: 4px 0; font-size: 0.9rem; }
 
         .factura-table {
             width: 100%;
@@ -114,34 +152,71 @@
         }
 
         .factura-table th, .factura-table td {
-            border: 1px solid var(--border);
-            padding: 10px;
+            border-bottom: 1px solid var(--border);
+            padding: 12px 8px;
             text-align: left;
+            font-size: 0.9rem;
         }
 
-        .factura-table th {
-            background-color: #F1F5F9;
-        }
+        .factura-table th { background-color: var(--primary); color: white; font-weight: 600; border: none; }
+        .text-right { text-align: right !important; }
 
-        .total-box {
-            text-align: right;
-            font-size: 1.2rem;
+        .f-resumen-financiero {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
             margin-top: 20px;
         }
 
-        .total-box span {
-            font-weight: bold;
-            color: #059669;
-            font-size: 1.5rem;
+        .f-metodo-pago {
+            width: 40%;
+            font-size: 0.85rem;
+            color: #475569;
+            background: #F1F5F9;
+            padding: 15px;
+            border-radius: 8px;
         }
 
-        .firma-proveedor {
+        .f-totales { width: 50%; }
+        .f-totales table { width: 100%; border-collapse: collapse; }
+        .f-totales td { padding: 5px 0; font-size: 0.95rem; }
+        .f-totales tr.total-final td { font-size: 1.3rem; font-weight: bold; color: var(--primary); border-top: 2px solid var(--border); padding-top: 10px; }
+
+        .f-footer {
             margin-top: 40px;
-            border-top: 1px solid var(--border);
-            padding-top: 10px;
-            text-align: center;
-            font-style: italic;
-            color: #64748B;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+        }
+
+        .f-legal {
+            width: 55%;
+            font-size: 0.65rem;
+            color: #94A3B8;
+            text-align: justify;
+        }
+
+        .firma-cliente { width: 40%; text-align: center; }
+        .firma-cliente p { margin: 0 0 5px 0; font-weight: bold; font-size: 0.85rem; }
+        
+        .canvas-container { position: relative; }
+        canvas {
+            border-bottom: 2px solid var(--primary);
+            width: 100%;
+            height: 100px;
+            cursor: crosshair;
+            touch-action: none; 
+        }
+
+        .btn-limpiar {
+            background-color: #F1F5F9;
+            color: #475569;
+            border: 1px solid var(--border);
+            padding: 4px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.75rem;
+            margin-top: 5px;
         }
 
         .btn-descargar {
@@ -157,82 +232,97 @@
             cursor: pointer;
             margin-top: 20px;
             transition: background 0.3s;
-            -webkit-tap-highlight-color: transparent;
         }
+        .btn-descargar:hover { background-color: #1D4ED8; }
 
-        .btn-descargar:hover {
-            background-color: #1D4ED8;
-        }
+        /* Toggle Switch para IVA */
+        .toggle-container { display: flex; align-items: center; margin-top: 10px; }
+        .toggle-container label { margin-bottom: 0; margin-left: 10px; font-weight: normal; cursor: pointer; }
 
-        /* =========================================
-           REGLAS RESPONSIVE (MÓVILES Y TABLETS)
-           ========================================= */
-        @media screen and (max-width: 768px) {
-            body {
-                padding: 10px;
-            }
-            
-            /* Pasa a una sola columna */
-            .app-container {
-                grid-template-columns: 1fr;
-                gap: 20px;
-            }
-
-            .panel {
-                padding: 15px;
-            }
-
-            /* Apila los campos del formulario uno encima de otro, 
-               pero NO afecta a la estructura interna de la factura */
-            .panel .grid-2:not(.factura-section) {
-                grid-template-columns: 1fr;
-                gap: 0;
-            }
+        @media screen and (max-width: 1024px) {
+            .app-container { grid-template-columns: 1fr; }
+            .panel { max-height: none; }
         }
     </style>
 </head>
 <body>
 
     <div class="app-container">
-        <!-- PANEL DE CONTROL (Formulario) -->
+        <!-- PANEL DE CONTROL -->
         <div class="panel">
-            <h2>📝 Nuevo Pedido NFC/QR</h2>
+            <h2 style="margin-top:0; color:var(--primary); font-size: 1.4rem;">⚙️ Configuración del Documento</h2>
             
-            <div class="grid-2">
+            <div class="section-title">Datos del Documento</div>
+            <div class="grid-3">
                 <div class="form-group">
-                    <label>ID Pedido</label>
-                    <input type="text" id="idPedido" value="PED-001" oninput="actualizarFactura()">
+                    <label>Tipo Documento</label>
+                    <select id="tipoDoc" onchange="actualizarTextos()">
+                        <option value="Factura">Factura</option>
+                        <option value="Factura Simplificada">Factura Simplificada</option>
+                        <option value="Albarán de Entrega">Albarán de Entrega</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Nº Documento</label>
+                    <input type="text" id="idPedido" value="F-26001" oninput="actualizarTextos()">
                 </div>
                 <div class="form-group">
                     <label>Fecha</label>
-                    <input type="date" id="fecha" oninput="actualizarFactura()">
-                </div>
-            </div>
-
-            <div class="form-group">
-                <label>Cliente / Comprador</label>
-                <input type="text" id="cliente" placeholder="Ej. Carlos Reina" oninput="actualizarFactura()">
-            </div>
-
-            <div class="grid-2">
-                <div class="form-group">
-                    <label>Nombre del Negocio</label>
-                    <input type="text" id="negocio" placeholder="Ej. Bar La Reina" oninput="actualizarFactura()">
-                </div>
-                <div class="form-group">
-                    <label>Ubicación</label>
-                    <input type="text" id="ubicacion" placeholder="Ciudad o Zona" oninput="actualizarFactura()">
+                    <input type="date" id="fecha" oninput="actualizarTextos()">
                 </div>
             </div>
 
             <div class="grid-2">
                 <div class="form-group">
-                    <label>Tipo de Producto</label>
+                    <label>Estado del Pago</label>
+                    <select id="estadoPago" onchange="actualizarTextos()">
+                        <option value="PAGADO">Cobrado (Pagado)</option>
+                        <option value="PENDIENTE">Pendiente de Pago</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Método de Pago</label>
+                    <select id="metodoPago" onchange="actualizarTextos()">
+                        <option value="Bizum">Bizum</option>
+                        <option value="Efectivo">Efectivo</option>
+                        <option value="Transferencia Bancaria">Transferencia Bancaria</option>
+                        <option value="Tarjeta">Tarjeta / TPV</option>
+                        <option value="Pendiente">Pendiente</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="section-title">Datos del Negocio (Cliente)</div>
+            <div class="grid-2">
+                <div class="form-group">
+                    <label>Nombre Fiscal / Empresa</label>
+                    <input type="text" id="negocio" placeholder="Ej. Restaurante La Plaza SL" oninput="actualizarTextos()">
+                </div>
+                <div class="form-group">
+                    <label>CIF / NIF</label>
+                    <input type="text" id="cif" placeholder="Ej. B12345678" oninput="actualizarTextos()">
+                </div>
+            </div>
+            <div class="grid-2">
+                <div class="form-group">
+                    <label>Persona de Contacto</label>
+                    <input type="text" id="cliente" placeholder="Nombre de quien firma" oninput="actualizarTextos()">
+                </div>
+                <div class="form-group">
+                    <label>Ubicación / Dirección</label>
+                    <input type="text" id="ubicacion" placeholder="Dirección del local" oninput="actualizarTextos()">
+                </div>
+            </div>
+
+            <div class="section-title">Detalles del Dispositivo NFC/QR</div>
+            <div class="grid-2">
+                <div class="form-group">
+                    <label>Tipo de Placa</label>
                     <select id="producto" onchange="calcularPrecios()">
-                        <option value="">Selecciona...</option>
-                        <option value="Google Review - Blanca">Google Review - Blanca</option>
-                        <option value="Google Review - Negra">Google Review - Negra</option>
-                        <option value="Instagram">Instagram</option>
+                        <option value="Placa NFC/QR - Reseñas Google (Blanca)">Google Review - Blanca</option>
+                        <option value="Placa NFC/QR - Reseñas Google (Negra)">Google Review - Negra</option>
+                        <option value="Placa NFC/QR - Instagram">Instagram</option>
+                        <option value="Diseño Personalizado NFC">Personalizado</option>
                     </select>
                 </div>
                 <div class="form-group">
@@ -240,109 +330,172 @@
                     <input type="number" id="cantidad" min="1" value="1" oninput="calcularPrecios()">
                 </div>
             </div>
-
-            <div class="form-group">
-                <label>Descuento Promocional (%)</label>
-                <input type="number" id="descuento" min="0" max="100" value="0" oninput="calcularPrecios()">
-            </div>
-
             <div class="grid-2">
                 <div class="form-group">
-                    <label>ID Placa / QR</label>
-                    <input type="text" id="idQr" placeholder="Ej. QR-G01" oninput="actualizarFactura()">
+                    <label>ID / Serie Placa</label>
+                    <input type="text" id="idQr" placeholder="Ej. QR-G01" oninput="actualizarTextos()">
                 </div>
                 <div class="form-group">
-                    <label>Nº Activación</label>
-                    <input type="text" id="activacion" placeholder="Ej. ACT-123" oninput="actualizarFactura()">
+                    <label>Enlace / URL</label>
+                    <input type="text" id="url" placeholder="g.page/r/..." oninput="actualizarTextos()">
                 </div>
             </div>
 
-            <div class="form-group">
-                <label>Enlace / URL Destino</label>
-                <input type="text" id="url" placeholder="https://g.page/r/..." oninput="actualizarFactura()">
+            <div class="section-title">Precios e Impuestos</div>
+            <div class="grid-2">
+                <div class="form-group">
+                    <label>Descuento Comercial (%)</label>
+                    <input type="number" id="descuento" min="0" max="100" value="0" oninput="calcularPrecios()">
+                </div>
+                <div class="form-group">
+                    <div class="toggle-container" style="margin-top: 25px;">
+                        <input type="checkbox" id="aplicarIva" checked onchange="calcularPrecios()">
+                        <label for="aplicarIva">Aplicar 21% IVA (B2B)</label>
+                    </div>
+                </div>
             </div>
             
-            <button class="btn-descargar" onclick="descargarPDF()">📥 Generar y Descargar PDF</button>
+            <button class="btn-descargar" onclick="descargarPDF()">📥 Generar Documento PDF</button>
         </div>
 
-        <!-- PANEL DE FACTURA (Vista Previa y PDF) -->
+        <!-- PANEL DE FACTURA -->
         <div class="panel">
-            <h2>📄 Vista Previa</h2>
             <div class="factura-wrapper">
                 <div class="factura-box" id="areaFactura">
-                    <div class="factura-header">
-                        MINI FACTURA Y TICKET DE ENTREGA
+                    <!-- Sello Dinámico -->
+                    <div id="selloPagado" class="sello-estado sello-pagado">PAGADO</div>
+
+                    <div class="f-header">
+                        <div class="f-brand">
+                            <h1>Soluciones NFC/QR</h1>
+                            <p><strong>Tu Nombre / Marca</strong></p>
+                            <p>info@tusitio.com | +34 600 000 000</p>
+                            <p>Valladolid, España</p>
+                        </div>
+                        <div class="f-doc-info">
+                            <h2 id="f_tipoDoc">FACTURA</h2>
+                            <p><strong>Nº:</strong> <span id="f_idPedido">F-26001</span></p>
+                            <p><strong>Fecha:</strong> <span id="f_fecha">-</span></p>
+                        </div>
                     </div>
 
-                    <div class="factura-section grid-2">
+                    <div class="f-datos-clientes">
                         <div>
-                            <strong>Pedido:</strong> <span id="f_idPedido">PED-001</span><br>
-                            <strong>Fecha:</strong> <span id="f_fecha">-</span><br>
-                            <strong>Cliente:</strong> <span id="f_cliente">-</span><br>
-                            <strong>Negocio:</strong> <span id="f_negocio">-</span><br>
-                            <strong>Ubicación:</strong> <span id="f_ubicacion">-</span>
+                            <h3>Datos del Cliente</h3>
+                            <p><strong>Empresa:</strong> <span id="f_negocio">-</span></p>
+                            <p><strong>CIF/NIF:</strong> <span id="f_cif">-</span></p>
+                            <p><strong>Dirección:</strong> <span id="f_ubicacion">-</span></p>
                         </div>
                         <div>
-                            <strong>ID Placa:</strong> <span id="f_idQr">-</span><br>
-                            <strong>Activación:</strong> <span id="f_activacion">-</span><br>
-                            <strong>URL Destino:</strong> <span id="f_url" style="word-break: break-all;">-</span>
+                            <h3>Datos de Entrega / Activación</h3>
+                            <p><strong>Contacto:</strong> <span id="f_cliente">-</span></p>
+                            <p><strong>Nº Serie Placa:</strong> <span id="f_idQr">-</span></p>
+                            <p><strong>Enlace Destino:</strong> <span id="f_url">-</span></p>
                         </div>
                     </div>
 
                     <table class="factura-table">
                         <thead>
                             <tr>
-                                <th>Producto</th>
-                                <th>Uds.</th>
-                                <th>Tarifa Base</th>
-                                <th>Dto.</th>
-                                <th>Total Neto</th>
+                                <th>Descripción del Artículo</th>
+                                <th class="text-right">Uds.</th>
+                                <th class="text-right">Precio Ud.</th>
+                                <th class="text-right">Dto.</th>
+                                <th class="text-right">Importe</th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr>
                                 <td id="f_producto">-</td>
-                                <td id="f_cantidad">0</td>
-                                <td id="f_tarifaBase">0,00 €</td>
-                                <td id="f_descuento">0%</td>
-                                <td id="f_totalLinea">0,00 €</td>
+                                <td class="text-right" id="f_cantidad">0</td>
+                                <td class="text-right" id="f_precioUd">0,00 €</td>
+                                <td class="text-right" id="f_descuento">0%</td>
+                                <td class="text-right" id="f_importeLinea">0,00 €</td>
                             </tr>
                         </tbody>
                     </table>
 
-                    <div class="total-box">
-                        <p>Subtotal Base: <span style="color:#0f172a; font-size:1.1rem" id="f_subtotal">0,00 €</span></p>
-                        <p>Descuento Aplicado: <span style="color:#ef4444; font-size:1.1rem" id="f_importeDto">0,00 €</span></p>
-                        <p>TOTAL A PAGAR: <span id="f_totalFinal">0,00 €</span></p>
+                    <div class="f-resumen-financiero">
+                        <div class="f-metodo-pago">
+                            <strong>Condiciones de Pago</strong><br><br>
+                            Método: <span id="f_metodoPago">Bizum</span><br>
+                            Estado: <strong id="f_estadoPagoTexto">Cobrado</strong>
+                        </div>
+                        
+                        <div class="f-totales">
+                            <table>
+                                <tr>
+                                    <td>Subtotal:</td>
+                                    <td class="text-right" id="f_subtotal">0,00 €</td>
+                                </tr>
+                                <tr>
+                                    <td>Descuento:</td>
+                                    <td class="text-right" id="f_importeDto">0,00 €</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Base Imponible:</strong></td>
+                                    <td class="text-right"><strong id="f_baseImponible">0,00 €</strong></td>
+                                </tr>
+                                <tr id="filaIva">
+                                    <td>IVA (21%):</td>
+                                    <td class="text-right" id="f_cuotaIva">0,00 €</td>
+                                </tr>
+                                <tr class="total-final">
+                                    <td>TOTAL DOCUMENTO:</td>
+                                    <td class="text-right" id="f_totalFinal">0,00 €</td>
+                                </tr>
+                            </table>
+                        </div>
                     </div>
 
-                    <div class="firma-proveedor">
-                        <strong>FIRMA DEL PROVEEDOR:</strong><br>
-                        Marcos Hidalgo Rodríguez - Dispositivos NFC y QR Premium
+                    <div class="f-footer">
+                        <div class="f-legal">
+                            <strong>Garantía y Política de Privacidad</strong><br>
+                            El dispositivo NFC/QR cuenta con una garantía de funcionamiento frente a defectos de fábrica de 1 año desde la fecha de entrega. No cubre daños por mal uso, rotura física o alteración de la URL destino por parte de terceros.<br><br>
+                            En cumplimiento de la normativa vigente en Protección de Datos (RGPD), le informamos que sus datos serán tratados de forma confidencial con la única finalidad de gestionar la relación comercial e informarle sobre el estado de sus servicios. Con su firma da su conformidad a la recepción del material y a estas condiciones.
+                        </div>
+                        <div class="firma-cliente">
+                            <p>Firma y Conformidad del Cliente</p>
+                            <div class="canvas-container">
+                                <canvas id="pizarraFirma"></canvas>
+                                <button type="button" class="btn-limpiar" onclick="limpiarFirma()" data-html2canvas-ignore="true">Borrar</button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- SCRIPT DE LÓGICA Y CÁLCULO -->
     <script>
-        // Inicializar fecha de hoy
         document.getElementById('fecha').valueAsDate = new Date();
         
-        function actualizarFactura() {
-            // Mapear campos de texto directos
-            const campos = ['idPedido', 'cliente', 'negocio', 'ubicacion', 'idQr', 'activacion', 'url'];
+        function actualizarTextos() {
+            const campos = ['idPedido', 'cliente', 'negocio', 'ubicacion', 'idQr', 'url', 'cif'];
             campos.forEach(campo => {
-                const valor = document.getElementById(campo).value || '-';
-                document.getElementById('f_' + campo).innerText = valor;
+                const valor = document.getElementById(campo).value || '';
+                document.getElementById('f_' + campo).innerText = valor || '-';
             });
 
-            // Formatear Fecha
             const fechaInput = document.getElementById('fecha').value;
             if(fechaInput) {
-                const dateParts = fechaInput.split('-');
-                document.getElementById('f_fecha').innerText = `${dateParts[2]}/${dateParts[1]}/${dateParts[0]}`;
+                const parts = fechaInput.split('-');
+                document.getElementById('f_fecha').innerText = `${parts[2]}/${parts[1]}/${parts[0]}`;
+            }
+
+            document.getElementById('f_tipoDoc').innerText = document.getElementById('tipoDoc').value.toUpperCase();
+            document.getElementById('f_metodoPago').innerText = document.getElementById('metodoPago').value;
+            
+            const estado = document.getElementById('estadoPago').value;
+            const sello = document.getElementById('selloPagado');
+            if(estado === 'PAGADO') {
+                sello.innerText = 'PAGADO';
+                sello.className = 'sello-estado sello-pagado';
+                document.getElementById('f_estadoPagoTexto').innerText = 'Abonado';
+            } else {
+                sello.innerText = 'PENDIENTE';
+                sello.className = 'sello-estado sello-pendiente';
+                document.getElementById('f_estadoPagoTexto').innerText = 'Pendiente';
             }
         }
 
@@ -350,72 +503,139 @@
             const producto = document.getElementById('producto').value;
             const cantidad = parseInt(document.getElementById('cantidad').value) || 0;
             const descuentoPct = parseFloat(document.getElementById('descuento').value) || 0;
+            const aplicarIva = document.getElementById('aplicarIva').checked;
             
-            let tarifaBase = 0;
+            let precioUnitario = 0;
 
-            // Motor de reglas de negocio
             if (producto && cantidad > 0) {
                 if (producto.includes("Instagram")) {
-                    tarifaBase = cantidad * 20;
+                    precioUnitario = 20;
                 } else if (producto.includes("Google")) {
-                    switch(cantidad) {
-                        case 1: tarifaBase = 25; break;
-                        case 2: tarifaBase = 45; break;
-                        case 3: tarifaBase = 65; break;
-                        case 4: tarifaBase = 80; break;
-                        case 5: tarifaBase = 100; break;
-                        default: tarifaBase = cantidad * 20; // 6 o más
-                    }
+                    if (cantidad === 1) precioUnitario = 25;
+                    else if (cantidad === 2) precioUnitario = 22.5; // 45 total
+                    else if (cantidad === 3) precioUnitario = 21.66; // ~65 total
+                    else if (cantidad === 4) precioUnitario = 20; // 80 total
+                    else if (cantidad >= 5) precioUnitario = 20; // 100 total
+                } else {
+                    precioUnitario = 25;
                 }
             }
 
-            const importeDescuento = tarifaBase * (descuentoPct / 100);
-            const totalFinal = tarifaBase - importeDescuento;
+            const importeBruto = precioUnitario * cantidad;
+            const importeDescuento = importeBruto * (descuentoPct / 100);
+            const baseImponible = importeBruto - importeDescuento;
+            
+            let cuotaIva = 0;
+            if(aplicarIva) {
+                cuotaIva = baseImponible * 0.21;
+                document.getElementById('filaIva').style.display = 'table-row';
+            } else {
+                document.getElementById('filaIva').style.display = 'none';
+            }
+            
+            const totalFinal = baseImponible + cuotaIva;
 
-            // Actualizar vista de factura
-            document.getElementById('f_producto').innerText = producto || '-';
+            const fDiv = (num) => num.toFixed(2).replace('.', ',') + ' €';
+
+            document.getElementById('f_producto').innerText = producto;
             document.getElementById('f_cantidad').innerText = cantidad;
             document.getElementById('f_descuento').innerText = descuentoPct + '%';
             
-            const formatearDivisa = (num) => num.toFixed(2).replace('.', ',') + ' €';
-
-            document.getElementById('f_tarifaBase').innerText = formatearDivisa(tarifaBase);
-            document.getElementById('f_totalLinea').innerText = formatearDivisa(totalFinal);
+            document.getElementById('f_precioUd').innerText = fDiv(precioUnitario);
+            document.getElementById('f_importeLinea').innerText = fDiv(baseImponible);
             
-            document.getElementById('f_subtotal').innerText = formatearDivisa(tarifaBase);
-            document.getElementById('f_importeDto').innerText = "-" + formatearDivisa(importeDescuento);
-            document.getElementById('f_totalFinal').innerText = formatearDivisa(totalFinal);
+            document.getElementById('f_subtotal').innerText = fDiv(importeBruto);
+            document.getElementById('f_importeDto').innerText = "-" + fDiv(importeDescuento);
+            document.getElementById('f_baseImponible').innerText = fDiv(baseImponible);
+            document.getElementById('f_cuotaIva').innerText = fDiv(cuotaIva);
+            document.getElementById('f_totalFinal').innerText = fDiv(totalFinal);
 
-            actualizarFactura();
+            actualizarTextos();
         }
 
         function descargarPDF() {
-            // Seleccionamos solo el panel de la factura
             const elemento = document.getElementById('areaFactura');
+            const idPedido = document.getElementById('idPedido').value || 'DOC';
+            let negocio = document.getElementById('negocio').value || 'Cliente';
+            negocio = negocio.replace(/\s+/g, '_'); 
             
-            // Construimos el nombre del archivo de forma automática
-            const idPedido = document.getElementById('idPedido').value || 'PEDIDO';
-            let cliente = document.getElementById('cliente').value || 'Cliente';
-            cliente = cliente.replace(/\s+/g, '_'); 
-            
-            const nombreArchivo = `Factura_${idPedido}_${cliente}.pdf`;
+            const nombreArchivo = `${idPedido}_${negocio}.pdf`;
 
-            // Opciones de configuración para el PDF
             const opciones = {
-                margin:       10,
+                margin:       [10, 10, 10, 10], // Margen para asegurar bordes
                 filename:     nombreArchivo,
                 image:        { type: 'jpeg', quality: 0.98 },
                 html2canvas:  { scale: 2, scrollX: 0, scrollY: 0 }, 
                 jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
             };
 
-            // Ejecuta la librería para generar y descargar el PDF
             html2pdf().set(opciones).from(elemento).save();
         }
 
-        // Ejecutar cálculos al cargar la página
-        actualizarFactura();
-        calcularPrecios();
+        // --- Lógica de la firma (Canvas) ---
+        const canvas = document.getElementById('pizarraFirma');
+        const ctx = canvas.getContext('2d');
+        let dibujando = false;
+
+        function redimensionarCanvas() {
+            const rect = canvas.getBoundingClientRect();
+            canvas.width = rect.width;
+            canvas.height = rect.height;
+            ctx.lineWidth = 2;
+            ctx.lineCap = 'round';
+            ctx.strokeStyle = '#0F172A';
+        }
+
+        function empezarDibujo(e) {
+            dibujando = true;
+            dibujar(e);
+            e.preventDefault();
+        }
+
+        function terminarDibujo() {
+            dibujando = false;
+            ctx.beginPath();
+        }
+
+        function dibujar(e) {
+            if (!dibujando) return;
+            const rect = canvas.getBoundingClientRect();
+            let x, y;
+
+            if (e.type.includes('touch')) {
+                x = e.touches[0].clientX - rect.left;
+                y = e.touches[0].clientY - rect.top;
+            } else {
+                x = e.clientX - rect.left;
+                y = e.clientY - rect.top;
+            }
+
+            ctx.lineTo(x, y);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(x, y);
+            e.preventDefault();
+        }
+
+        canvas.addEventListener('mousedown', empezarDibujo);
+        canvas.addEventListener('mouseup', terminarDibujo);
+        canvas.addEventListener('mousemove', dibujar);
+        canvas.addEventListener('mouseout', terminarDibujo);
+
+        canvas.addEventListener('touchstart', empezarDibujo, { passive: false });
+        canvas.addEventListener('touchend', terminarDibujo);
+        canvas.addEventListener('touchmove', dibujar, { passive: false });
+
+        function limpiarFirma() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+
+        window.addEventListener('load', () => {
+            redimensionarCanvas();
+            actualizarTextos();
+            calcularPrecios();
+        });
+        window.addEventListener('resize', redimensionarCanvas);
     </script>
 </body>
 </html>
